@@ -100,6 +100,7 @@ class Tail {
         for (int i = lineList.size() - nNum; i < lineList.size(); i++) {
             returnList.add(lineList.get(i));
         }
+        System.out.println(returnList);
         return returnList; // вернётся лист с последними nNum строками для флага -n
     }
 
@@ -152,7 +153,6 @@ class Tail {
         } catch (IOException e) {
             throw new RuntimeException(e); //чтобы надолго не зависал // а так требует IOException всегда
         }
-        System.out.println(sb);
         return sb.toString();
     }
 
@@ -163,11 +163,8 @@ class Tail {
         sb.append(oldFile);
         for (String line : newText) {
             sb.append(line);
-            sb.append(System.lineSeparator()); /*я как-то набрёл на этот метод ,и мне он понравился.
-            Как думаете, могу ли я всё время его использовать вместо append("\n") ?
-            */
+            sb.append(System.lineSeparator());
         }
-        sb.append(newText);
         write(nameFile, sb.toString());
     }
 
@@ -182,7 +179,7 @@ class Tail {
                 bw.write(text);
             }
         } catch (IOException e) { //от меня просто железно потребовалось ловить IOException
-            System.out.println("Something has got wrong while writing");
+            System.out.println("Something is wrong with writing");
         }
     }
 

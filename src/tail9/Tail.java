@@ -1,21 +1,19 @@
 package tail9;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.io.*;
-import java.io.Console;
 
-public class Tail {
+class Tail {
     static void tailOfFiles(String[] args){
         ArrayList<String> files = new ArrayList<String>(); //то, куда кидаю перечень имен файлов с текстом
-        Boolean c = false;
-        Boolean n = false;
-        Boolean outputFileExists = false;
-        Integer cNum = 0;
-        Integer nNum = 0;
+        boolean c = false;
+        boolean n = false;
+        boolean outputFileExists = false;
+        int cNum = 0;
+        int nNum = 0;
         String oName = "output.txt";
         Pattern pattern = Pattern.compile("(([a-zA-z0-9|_|-]+).(txt|doc))");
         Matcher m;
@@ -46,6 +44,12 @@ public class Tail {
                 if (m.matches()) files.add(args[i]);
             }
         }
+        try(BufferedWriter out1 = new BufferedWriter(new FileWriter(oName))) {
+            out1.write(""); // очищаем файл, перезаписав поверх пустую строку
+        }
+        catch (Exception e)
+        {System.err.println("Error in file cleaning: " + e.getMessage());}
+
         if (c && n) throw new IllegalArgumentException();
         ArrayList<String> lines = new ArrayList<String>();
         if (files.isEmpty()){
@@ -102,13 +106,12 @@ public class Tail {
 
     }
 
-    static private ArrayList<String> readLines(String fileName, Integer nNum) {
+    static private ArrayList<String> readLines(String fileName, int nNum) {
         ArrayList<String> lineList = new ArrayList<>();
-        lineList.add(fileName + "\\n");
-        //ArrayList<String> returnList = new ArrayList<>();
         //наткнулся на try-with-resources
         //надо выбрать кодировку, иначе кириллица будет кракозябная
         try(BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "UTF-8"))){
+            lineList.add(System.lineSeparator() + "["+fileName+"]" + System.lineSeparator());
             //чтение построчно
             String s;
             int j = 0;
@@ -117,7 +120,7 @@ public class Tail {
                 lineList.add(s);
             }
             while ((s = in.readLine()) != null){
-                lineList.remove(0);
+                lineList.remove(1);
                 lineList.add(s);
             }
 
@@ -126,17 +129,15 @@ public class Tail {
         catch (IOException ex) {
             System.out.println(ex.getMessage()); //должно выводить сообщение
         }
-
         return lineList;
     }
-    static private ArrayList<String> readLines(ArrayList<String> lines, Integer nNum) {
+    static private ArrayList<String> readLines(ArrayList<String> lines, int nNum) {
         ArrayList<String> result = new ArrayList<String>();
         result.addAll(lines.subList(lines.size() - nNum, lines.size() - 1));
         return result;
     }
-    static private ArrayList<String> readSymbols(String fileName, Integer cNum) {
+    static private ArrayList<String> readSymbols(String fileName, int cNum) {
         ArrayList<String> lineList = new ArrayList<>();
-        lineList.add(fileName + "\\n");
         StringBuilder sb= new StringBuilder();
         try(BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(fileName),"UTF-8"))){
             // чтение посимвольно
@@ -158,9 +159,10 @@ public class Tail {
             System.out.println(ex.getMessage());
         }
         Collections.addAll(lineList, sb.toString().split("\\n"));
+        lineList.add(System.lineSeparator() + "["+fileName+"]" + System.lineSeparator());
         return lineList;
     }
-    static private ArrayList<String> readSymbols(ArrayList<String> lines, Integer cNum) {
+    static private ArrayList<String> readSymbols(ArrayList<String> lines, int cNum) {
         ArrayList<String> result = new ArrayList<String>();
         for (int i = lines.size() - 1; i >= 0; i--){
             cNum -= lines.get(i).length();
@@ -176,35 +178,15 @@ public class Tail {
         return result;
     }
 
-    static void write(String fileName, ArrayList<String> lines) {
-        String text = lines.toString();
+    static private void write(String fileName, ArrayList<String> lines) {
         try(BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true));){
             for (String line: lines){
-                bw.write(System.lineSeparator() + line);
+                bw.write(line + System.lineSeparator());
             }
 
         }
         catch (IOException ex){
             System.out.println(ex.getMessage());
-        }
-    }
-        /*File file = new File(fileName);
-
-        try {
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName))) {
-                bw.write(text);
-            }
-        } catch (IOException e) { //от меня просто железно потребовалось ловить IOException
-            System.out.println("Something is wrong with writing");
-        }
-    }*/
-    private static void exists(String fileName) throws FileNotFoundException {
-        File file = new File(fileName);
-        if (!file.exists()) {
-            throw new FileNotFoundException(file.getName());
         }
     }
 }

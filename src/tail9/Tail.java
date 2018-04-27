@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 import java.io.*;
 
 class Tail {
-    static void tailOfFiles(String[] args){
+    static void tailOfFiles(String[] args) {
         ArrayList<String> files = new ArrayList<String>(); //то, куда кидаю перечень имен файлов с текстом
         boolean c = false;
         boolean n = false;
@@ -15,8 +15,8 @@ class Tail {
         int cNum = 0;
         int nNum = 0;
         String oName = "output.txt";
-        Pattern pattern = Pattern.compile("(([a-zA-z0-9|_|-]+).(txt|doc))");
-        Matcher m;
+        //Pattern pattern = Pattern.compile("(([a-zA-z0-9|_|-]+).(txt|doc))");
+        //Matcher m;
 
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
@@ -38,22 +38,22 @@ class Tail {
                     oName = args[i];
                     break;
                 }
+                default: if (!args[i].equals(oName)) files.add(args[i]);
+
             }
-            if (!args[i].equals(oName)) {
-                m = pattern.matcher(args[i]);
-                if (m.matches()) files.add(args[i]);
-            }
+            //if (!args[i].equals(oName)) files.add(args[i]);
+                //m = pattern.matcher(args[i]);
+                //if (m.matches())
         }
-        try(BufferedWriter out1 = new BufferedWriter(new FileWriter(oName))) {
-            out1.write(""); // очищаем файл, перезаписав поверх пустую строку
+        try (PrintWriter writer = new PrintWriter(oName);) {
+            writer.print(""); // очищаем файл, перезаписав поверх пустой текст
+        } catch (Exception e) {
+            System.err.println("Error in file cleaning: " + e.getMessage());
         }
-        catch (Exception e)
-        {System.err.println("Error in file cleaning: " + e.getMessage());}
 
         if (c && n) throw new IllegalArgumentException();
         ArrayList<String> lines = new ArrayList<String>();
-        if (files.isEmpty()){
-            System.out.println("There is no file to get tail from it. Write something, please.");
+        if (files.isEmpty()) {
             //Console cl = System.console(); отдельно подумаю, как реализовать консоль. это более практично
             try {
                 BufferedReader br = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
@@ -66,13 +66,12 @@ class Tail {
                 System.out.println(e);
             }
             lines.remove(lines.size() - 1);
-            System.out.println("Alright! You wrote this:" + lines);
         }
 
         ArrayList<String> lineList;
         StringBuilder sb;
         System.out.println(files);
-        if (files.size() != 0){
+        if (files.size() != 0) {
             for (int i = 0; i < files.size(); i++) {
                 if (n) lineList = readLines(files.get(i), nNum);
                 else if (c) lineList = readSymbols(files.get(i), cNum);
@@ -80,24 +79,21 @@ class Tail {
 
                 if (outputFileExists) {
                     write(oName, lineList);
-                }
-                else {
+                } else {
                     for (String line : lineList) {
                         System.out.print(line + System.lineSeparator());
                     }
                 }
             }
-        }
-        else
-        {
+        } else {
             if (n) lineList = readLines(lines, nNum);
-            else if (c) {System.out.println(lines); lineList = readSymbols(lines, cNum); System.out.println(lineList);}
-            else
+            else if (c) {
+                lineList = readSymbols(lines, cNum);
+            } else
                 lineList = readLines(lines, 10);
             if (outputFileExists) {
                 write(oName, lineList);
-            }
-            else {
+            } else {
                 for (String line : lineList) {
                     System.out.print(line + System.lineSeparator());
                 }
@@ -110,8 +106,8 @@ class Tail {
         ArrayList<String> lineList = new ArrayList<>();
         //наткнулся на try-with-resources
         //надо выбрать кодировку, иначе кириллица будет кракозябная
-        try(BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "UTF-8"))){
-            lineList.add(System.lineSeparator() + "["+fileName+"]" + System.lineSeparator());
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "UTF-8"))) {
+            lineList.add(System.lineSeparator() + "[" + fileName + "]" + System.lineSeparator());
             //чтение построчно
             String s;
             int j = 0;
@@ -119,27 +115,28 @@ class Tail {
                 j++;
                 lineList.add(s);
             }
-            while ((s = in.readLine()) != null){
+            while ((s = in.readLine()) != null) {
                 lineList.remove(1);
                 lineList.add(s);
             }
 
 
-        }
-        catch (IOException ex) {
+        } catch (IOException ex) {
             System.out.println(ex.getMessage()); //должно выводить сообщение
         }
         return lineList;
     }
+
     static private ArrayList<String> readLines(ArrayList<String> lines, int nNum) {
         ArrayList<String> result = new ArrayList<String>();
         result.addAll(lines.subList(lines.size() - nNum, lines.size() - 1));
         return result;
     }
+
     static private ArrayList<String> readSymbols(String fileName, int cNum) {
         ArrayList<String> lineList = new ArrayList<>();
-        StringBuilder sb= new StringBuilder();
-        try(BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(fileName),"UTF-8"))){
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "UTF-8"))) {
             // чтение посимвольно
             int symbol;
             int j = 0;
@@ -149,7 +146,7 @@ class Tail {
                 sb.append(c);
                 j++;
             }
-            while ((symbol = in.read()) != -1){
+            while ((symbol = in.read()) != -1) {
                 c = (char) symbol;
                 sb.append(c);
                 sb.deleteCharAt(0);
@@ -159,14 +156,15 @@ class Tail {
             System.out.println(ex.getMessage());
         }
         Collections.addAll(lineList, sb.toString().split("\\n"));
-        lineList.add(System.lineSeparator() + "["+fileName+"]" + System.lineSeparator());
+        lineList.add(System.lineSeparator() + "[" + fileName + "]" + System.lineSeparator());
         return lineList;
     }
+
     static private ArrayList<String> readSymbols(ArrayList<String> lines, int cNum) {
         ArrayList<String> result = new ArrayList<String>();
-        for (int i = lines.size() - 1; i >= 0; i--){
+        for (int i = lines.size() - 1; i >= 0; i--) {
             cNum -= lines.get(i).length();
-            if (cNum <= 0){
+            if (cNum <= 0) {
                 if (cNum == 0) break;
                 String lastLine = lines.get(i);
                 String substring = lastLine.substring(lastLine.length() + cNum, lastLine.length());
@@ -179,13 +177,12 @@ class Tail {
     }
 
     static private void write(String fileName, ArrayList<String> lines) {
-        try(BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true));){
-            for (String line: lines){
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true));) {
+            for (String line : lines) {
                 bw.write(line + System.lineSeparator());
             }
 
-        }
-        catch (IOException ex){
+        } catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
     }
